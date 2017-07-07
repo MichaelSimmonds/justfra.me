@@ -17,27 +17,14 @@
     .frame_viz_container>canvas {
       position: absolute;
     }
-    .canvas2 {
-      /*transform: rotate(90deg);*/
-    }
-    .canvas3 {
-      /*transform: rotate(180deg);*/
-    }
-    .canvas4 {
-      /*transform: rotate(270deg);*/
-    }
   </style>
 </head>
 <body>
-  <p>rewriting as factory function</p>
+  <p>add artwork functionality</p>
   <ul>
-    <li>Xdoess't scale relative to frame width~</li>
-    <li>Xframes need to be offset based on their position - only wokrs for square frames atm</li>
     <li>could do with using better frame images</li>
-    <li>Xfram images being streatched</li>
-    <li>may not be responsive - need to use JS to grab an the parent elements width/height and scale to that</li>
+    <li>not  responsive - need to use JS to grab an the parent elements width/height and scale to that</li>
   </ul>
-  <p>Create an single object that combines all the variables needed and just hand that around.</p>
   <hr>
 <div>
   <div class="frame_viz_container">
@@ -61,7 +48,7 @@
   }
 
   // This calls the createSidefunction and passes the object to insertAfter function to place it in the DOM
-  function createFrame(order_details, moulding_details, referenceNode
+  function createFrame(order_details, moulding_details, referenceNode){
     //RENDER Moulding
     //load frame image (we cant do mcuh without it)
     const moulding_img = new Image();
@@ -77,11 +64,6 @@
       }
     }
     //RENDER ARTWORK
-
-
-
-
-
   }
 
 
