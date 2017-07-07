@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Second try</title>
+  <style>
+    .container {
+      position: relative;
+      transform: scale(0.5);
+    }
+    .container>canvas {
+      position: absolute;
+    }
+    .canvas2 {
+      transform: rotate(90deg);
+    }
+    .canvas3 {
+      transform: rotate(180deg);
+    }
+    .canvas4 {
+      transform: rotate(270deg);
+    }
+  </style>
+</head>
+<body>
+  <p>idea is to create 2 sections of frame, on scaled to the x one scaled to the y. these two will then be suplicated and the whole set transformed and placed using css. To test this I will create one section, duplicate the canvas element 4 times and then rotate each via css transform.</p>
+  <hr>
+  <p>This seemed to work well - It currently can make a frame if you hand it 2 objects, one for the frame details and one for the moulding details.</p>
+  <p>the code needs to be enclosed whithin the create frame function</p>
+  <ul>
+    <li>doess't scale relative to frame width</li>
+    <li>frames need to be offset based on their position - only wokrs for square frames atm</li>
+    <li>could do with using better frame images</li>
+    <li>fram images being streatched</li>
+    <li>may not be responsive - need to use JS to grab an the parent elements width/height and scale to that</li>
+  </ul>
+  <p>Create an single object that combines all the variables needed and just hand that around.</p>
+  <hr>
+  <div class="container">
+    <div class="theDiv"></div>
+
+  </div>
+  <script>
+  //Details of the frame
+  const order_details = {
+    image_x: 240,
+    image_y: 240
+  }
+  //Details of the moulding
+  const moulding_details = {
+    moulding_code: 'M04483',
+    moulding_width: 22,
+    moulding_img: function(){
+      return(`http://www.frintonmouldings.com/res/${this.moulding_code}.jpg`)
+    },
+    moulding_img_width: function(){
+      let img = this.moulding_img()
+      return(img)
+    }
+  }
+
+  function createFrame(order_details, moulding_details){
+
+    createFrameSide(order_details, moulding_details, 1)
+    createFrameSide(order_details, moulding_details, 2)
+    createFrameSide(order_details, moulding_details, 3)
+    createFrameSide(order_details, moulding_details, 4)
+
+  }
+
+  function createFrameSide(order_details, moulding_details, position_number) {
+    // do some preliminary calculations
+    const overall_x = function(){
+      return(order_details.image_x + moulding_details.moulding_width*2)
+    };
+    const overall_y = function(){
+      return(order_details.image_y + moulding_details.moulding_width*2)
+    }
+
+    //load frame image (we cant do mcuh without it)
+    var img = new Image();
+    img.src = moulding_details.moulding_img();
+    img.onload = function(){
+      //create a new canvas element (after image load complete)
+      var canvas = document.createElement('canvas');
+      //set dimensions required to draw section horizontally
+      const canvasSize = canvasDimensions(position_number);
+      canvas.width = canvasSize['width'];
+      canvas.height = canvasSize['height'];
+      // const temp = canvasDimensions(position_number);
+
+      // set canvas context + fill pattern
+      var ctx = canvas.getContext('2d');
+      var pattern = ctx.createPattern(img, 'repeat');
+      ctx.fillStyle = pattern;
+      //Calculate and draw path
+      let pointsArray = calcPoints(order_details, position_number);
+      drawPoints(ctx,...pointsArray)
+      //Style and transform
+      canvas.classList.add(`canvas${position_number}`)
+      canvas.style.transform = `rotate(${(90*position_number)-90}deg)`
+      // canvas.style.transform = `translate(${},${})` //create a function to translate each side dependant on its position numner
+
+      //insert the side into the DOM
+      var referenceNode = document.querySelector('.theDiv')
+      insertAfter(canvas, referenceNode)
+    }
+
+    //Begin functions
+    function canvasDimensions(position_number){
+      return({width:overall_x(),height:overall_y()})
+      // This will set the length of the side - DEactivated
+      // if(position_number == 1 || position_number == 3){
+      //   return({width:overall_x(),height:overall_y()})
+      // }else{
+      //   return({width:overall_y(),height:overall_x()})
+      // }
+    }
+
+    //Calculate path points
+    function calcPoints(order_details, position_number){
+      //if position_number is 1or 3 shoul = x dimension or if 2/4 should be y
+      let x = overall_x();
+      // let y = overall_y();
+      let w = moulding_details.moulding_width;
+      return([[0,0],[x,0],[(x-w),w],[w,w]])
+    }
+
+    //draw points
+    function drawPoints(ctx,p1,p2,p3,p4){
+      // console.log(p1,p2,p3,p4)
+      ctx.beginPath();
+      ctx.moveTo(...p1);
+      ctx.lineTo(...p2);
+      ctx.lineTo(...p3);
+      ctx.lineTo(...p4);
+      ctx.fill();
+    }
+    //InsertAfter Helper function
+    function insertAfter(el, referenceNode) {
+      referenceNode.parentNode.insertBefore(el, referenceNode.nextSibling);
+    }
+
+  //end of create side function
+  }
+  console.log('here')
+  createFrame(order_details, moulding_details);
+
+
+  // function cloneCanvas(originalCanvas) {
+  //   //create a new canvas
+  //   var newCanvas = document.createElement('canvas');
+  //   newCanvas.classList.add('canvas2')
+  //   var context = newCanvas.getContext('2d');
+  //   //set dimensions
+  //   newCanvas.width = originalCanvas.width;
+  //   newCanvas.height = originalCanvas.height;
+  //   //apply the old canvas to the new one
+  //   context.drawImage(originalCanvas, 0, 0);
+  //   //return the new canvas
+  //   return newCanvas;
+  // }
+
+
+  //Call set-frame-pattern and then that will in turn call buildFrame() - this should be changes to  a callback
+  // const canvas = createFrameSide(order_details, 1);
+  // // insertAfter(canvas, referenceNode)
+  // const canvas2 = createFrameSide(order_details, 2);
+  // const canvas3 = createFrameSide(order_details, 3);
+  // const canvas4 = createFrameSide(order_details, 4);
+  // const canvas2 = cloneCanvas(canvas)
+  // loadMouldingImage();
+  // function buildFrame(order_details){
+  //   // calcPoints(order_details)
+  //   insertAfter(cloneCanvas(canvas), canvas);
+  // }
+
+  </script>
+</body>
+</html>

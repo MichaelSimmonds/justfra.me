@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Viz (first)</title>
+
+  <style>
+    h1 {
+      text-align: center;
+    }
+    canvas {
+      border: 1px dashed red;
+      display: block;
+      margin: auto;
+      transform: rotate(90deg);
+    }
+    .2canvas {
+      border: 1px solid black;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>Will it work?!</h1>
+  <div class="2canvas">
+    <canvas id="canvas"></canvas>
+  </div>
+  <div>
+    <p>The issue is that each canvas can only have one context. the repeat-x fill property will not fill two elements(it repeats from the top most first element drawn and doesnt 'redraw' is called again. We cant use the standard repeat fill as it wont 'line up' on the bottom bit of frame. The solution may be to create an trapesoid x-peice and a y-peice in seperate canvas'. Then duplicate these two canvas' and transform and overlay them all. This means there will be 4 overlapping canvas elements in all - not ideal by any means.</p>
+  </div>
+  <script>
+    const canvas = document.querySelector('#canvas')
+    const ctx= canvas.getContext('2d');
+    const order_details = {
+      image_x: 210,
+      image_y: 297,
+      frame_width: 30,
+      overall_x: function(){
+        return(this.image_x + this.frame_width*2)
+      },
+      overall_y: function(){
+        return(this.image_y + this.frame_width*2)
+      }
+    }
+
+    const setCanvasSize = function(order_obj){
+      canvas.width = order_obj.overall_x();
+      canvas.height = order_obj.overall_y();
+    }
+
+    const set_frame_pattern = function(){
+      var img = new Image();
+      img.src = 'https://mdn.mozillademos.org/files/222/Canvas_createpattern.png';
+      img.onload = function() {
+        var pattern = ctx.createPattern(img, 'repeat');
+        ctx.fillStyle = pattern;
+        drawAll()
+      }
+    }
+
+    function calcPoints(order_obj){
+      let x = order_obj.overall_x();
+      let y = order_obj.overall_y();
+      let w = order_obj.frame_width;
+      let fillPattern = ctx.fillStyle
+      // console.log(fillPattern)
+      ctx.beginPath();
+      ctx.fillStyle = fillPattern
+      drawPoints([0,0],[x,0],[(x-w),w],[w, w])
+      ctx.fill()
+      // ctx.closePath();
+      // console.log(y)
+      ctx.beginPath();
+      ctx.fillStyle = fillPattern;
+      drawPoints([0,y],[x,y],[(x-w),(y-w)],[30,y-w])
+      ctx.fill()
+      ctx.closePath();
+        // First path
+
+      // ctx.strokeStyle = 'blue';
+      // ctx.fill();
+      // ctx.stroke();
+    }
+    function drawPoints(p1,p2,p3,p4){
+      console.log(p1,p2,p3,p4)
+      ctx.moveTo(...p1);
+      ctx.lineTo(...p2);
+      ctx.lineTo(...p3);
+      ctx.lineTo(...p4);
+    }
+
+    // function drawdirx2(order_obj){
+    //   let x = order_obj.overall_x();
+    //   let y = order_obj.overall_y();
+    //   let w = order_obj.frame_width;
+    //     // First path
+    //   ctx.beginPath();
+    //   ctx.moveTo(0,y);
+    //   ctx.lineTo(x,y);
+    //   ctx.lineTo((x-w),(y-w));
+    //   ctx.lineTo(w,(y-w));
+    //   ctx.closePath();
+    //   ctx.strokeStyle = 'blue';
+    //   ctx.stroke();
+    //   ctx.fill();
+    //
+    // }
+
+    function cloneCanvas(oldCanvas) {
+      //create a new canvas
+      var newCanvas = document.createElement('canvas');
+      newCanvas.classList.add('canvas2')
+      var context = newCanvas.getContext('2d');
+      //set dimensions
+      newCanvas.width = oldCanvas.width;
+      newCanvas.height = oldCanvas.height;
+      //apply the old canvas to the new one
+      context.drawImage(oldCanvas, 0, 0);
+      //return the new canvas
+      return newCanvas;
+    }
+
+
+    function insertAfter(el, referenceNode) {
+      referenceNode.parentNode.insertBefore(el, referenceNode.nextSibling);
+    }
+
+    setCanvasSize(order_details);
+    set_frame_pattern();
+    function drawAll(){
+      calcPoints(order_details)
+      const canvas = document.querySelector('#canvas')
+      const newDiv = (cloneCanvas(canvas))
+      insertAfter(newDiv, canvas);
+    }
+
+  </script>
+</body>
+</html>

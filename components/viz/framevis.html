@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Second try</title>
+  <style>
+    .frame_viz_container {
+      position: relative;
+      width: 500px;
+      height: 500px;
+      background-color: pink;
+      border: 1px solid blue;
+      /*transform: scale(0.5);*/
+    }
+    .frame_viz_container>canvas {
+      position: absolute;
+    }
+    .canvas2 {
+      /*transform: rotate(90deg);*/
+    }
+    .canvas3 {
+      /*transform: rotate(180deg);*/
+    }
+    .canvas4 {
+      /*transform: rotate(270deg);*/
+    }
+  </style>
+</head>
+<body>
+  <p>rewriting as factory function</p>
+  <ul>
+    <li>Xdoess't scale relative to frame width~</li>
+    <li>Xframes need to be offset based on their position - only wokrs for square frames atm</li>
+    <li>could do with using better frame images</li>
+    <li>Xfram images being streatched</li>
+    <li>may not be responsive - need to use JS to grab an the parent elements width/height and scale to that</li>
+  </ul>
+  <p>Create an single object that combines all the variables needed and just hand that around.</p>
+  <hr>
+<div>
+  <div class="frame_viz_container">
+  </div>
+</div>
+
+  <script>
+  //Details of the frame
+  const order_details = {
+    image_x: 210,
+    image_y: 300
+  }
+  //Details of the moulding
+  const moulding_details = {
+    moulding_code: 'm0001',
+    moulding_width: 12,
+    moulding_img: function(){
+      return(`http://www.frintonmouldings.com/res/${this.moulding_code}.jpg`)
+    },
+    moulding_img_width: 0
+  }
+
+  // This calls the createSidefunction and passes the object to insertAfter function to place it in the DOM
+  function createFrame(order_details, moulding_details, referenceNode
+    //RENDER Moulding
+    //load frame image (we cant do mcuh without it)
+    const moulding_img = new Image();
+    moulding_img.src = moulding_details.moulding_img();
+    moulding_img.onload = function(){
+      //set the moulding image width now we know its value
+      moulding_details.moulding_image_width = this.height;
+      // When image is loaded call createSide 4 times with the image
+      for (let i = 0; i < 4; i++) {
+        let currentSide = createFrameSide(order_details, moulding_details, moulding_img, i);
+        //INSET INTO DOM
+        referenceNode.appendChild(currentSide)
+      }
+    }
+    //RENDER ARTWORK
+
+
+
+
+
+  }
+
+
+
+  //FACTORY FUNCTION START ____________________
+  let createFrameSide = function(order_details, moulding_details, moulding_img, position_number) {
+    // do some preliminary calculations
+    const pixelRatio = moulding_details.moulding_image_width/moulding_details.moulding_width;
+
+    const side_pixel_length = function(){
+      //could by image_y is sides 2 or 4 ******************
+      let length = 0;
+      if (position_number == 0 || position_number == 2){
+        length=(order_details.image_x + moulding_details.moulding_width*2);
+      }else{
+        length=(order_details.image_y + moulding_details.moulding_width*2);
+      }
+      return(length*pixelRatio)
+    };
+    const side_pixel_width = function(){
+      return(moulding_details.moulding_image_width)
+    }
+    console.log("Pixel Ratio: ",pixelRatio, "pix wid", side_pixel_width(), "pix len", side_pixel_length() )
+
+
+      //create a new canvas element (after image load complete)
+      var canvas = document.createElement('canvas');
+      //set dimensions required to draw section horizontally
+      const canvasSize = canvasDimensions(position_number);
+      canvas.width = canvasSize['width'];
+      canvas.height = canvasSize['height'];
+
+      // set canvas context + fill pattern
+      var ctx = canvas.getContext('2d');
+      var pattern = ctx.createPattern(moulding_img, 'repeat');
+      ctx.fillStyle = pattern;
+      //Calculate and draw path
+      let pointsArray = calcPoints(order_details, position_number);
+      drawPoints(ctx,...pointsArray)
+      //Style and transform
+      canvas.classList.add(`canvas${position_number}`)
+      canvas.style.transformOrigin = 'top left';
+      canvas.style.transform = transformSide(position_number);
+      //return the side for insertion into the DOM
+      console.log("toReturn:",canvas)
+      return(canvas)
+
+    //Begin functions
+
+    function transformSide(position_number){
+      const side_length_x = order_details.image_x+(2*moulding_details.moulding_width)
+      const side_length_y = order_details.image_y+(2*moulding_details.moulding_width)
+      // const side_length_y = side_pixel_length()/pixelRatio
+
+      let translation = function(position_number){
+        switch (position_number) {
+          case 0:
+            return(`0px, 0px`)
+            break;
+          case 1:
+            return(`${side_length_x}px,0px`)
+            break;
+          case 2:
+            return(`${side_length_x}px,${side_length_y}px`);
+            break;
+          case 3:
+            return(`0px,${side_length_y}px`);
+            break;
+          default: alert('error in translate')
+        }
+      }
+
+      return(`
+        translate(${translation(position_number)})
+        rotate(${(90*position_number)}deg)
+        scale(${1/pixelRatio})
+        `)
+    }
+
+    function canvasDimensions(position_number){
+      return({width:side_pixel_length(),height:side_pixel_width()})
+      // This will set the length of the side - DEactivated
+      // if(position_number == 1 || position_number == 3){
+      //   return({width:side_pixel_length(),height:side_pixel_width()})
+      // }else{
+      //   return({width:side_pixel_width(),height:side_pixel_length()})
+      // }
+    }
+
+    //Calculate path points
+    function calcPoints(order_details, position_number){
+      //if position_number is 1or 3 shoul = x dimension or if 2/4 should be y
+      let x = side_pixel_length();
+      // let y = side_pixel_width();
+      let w = side_pixel_width();
+      return([[0,0],[x,0],[(x-w),w],[w,w]])
+    }
+
+    //draw points
+    function drawPoints(ctx,p1,p2,p3,p4){
+      console.log(p1,p2,p3,p4)
+      ctx.beginPath();
+      ctx.moveTo(...p1);
+      ctx.lineTo(...p2);
+      ctx.lineTo(...p3);
+      ctx.lineTo(...p4);
+      ctx.fill();
+    }
+  }
+  //FACTORY FUNCTION END   ____________________
+
+
+  // /Call create Frame
+  var referenceNode = document.querySelector('.frame_viz_container')
+  createFrame(order_details, moulding_details, referenceNode)
+
+  </script>
+</body>
+</html>
